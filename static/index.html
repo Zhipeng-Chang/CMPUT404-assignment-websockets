@@ -22,7 +22,7 @@
     "/>
     <script src="json2.js"></script>
   </head> 
-  <body bgcolor="white" height="100%" width="100%"> 
+  <body bgcolor="#FFFCD5" height="100%" width="100%"> 
     <div id="debug"></div>
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
 
@@ -44,6 +44,17 @@ debug("Test");
 
 world = {};
 
+// Reference: https://stackoverflow.com/questions/1484506/random-color-generator answered Sep 27 '09 at 21:25 by Anatoliy, edited Jun 23 '17 at 6:41 by Paolo Forgia
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
     with(context) {
@@ -52,7 +63,7 @@ function drawCircle(context,entity) {
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
-        fillStyle = entity["colour"];
+        fillStyle = getRandomColor();
         strokeStyle = fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
         stroke();                                
@@ -61,7 +72,7 @@ function drawCircle(context,entity) {
 
 function prepEntity(entity) {
     if (!entity["colour"]) {
-        entity["colour"] = "#FF0000";
+        entity["colour"] = getRandomColor();
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
@@ -72,7 +83,7 @@ function prepEntity(entity) {
 function clearFrame() {
     with(context) {
 	moveTo(0,0);
-	fillStyle = "#000";
+	fillStyle = "#FFFCD5";
 	fillRect(0,0,W,H);
     }
 
@@ -125,6 +136,9 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    var new_world = {};
+    new_world[entity] = data;
+    socket.send(JSON.stringify(new_world));
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -248,12 +262,41 @@ function update() {
     drawFrame();
 }
 
+function sendJSONFetchHTTPRequest(url, objects, callback) {
+    if (objects == null){
+        return fetch(url).then(res => res.json()).then(body => callback(body));
+    }
+    else if (objects != null){
+          return fetch(url, {
+            method: 'POST', 
+            body: JSON.stringify(objects),
+            headers: new Headers({
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            }),
+          });
+    }
+}
+
+// Reference: https://stackoverflow.com/questions/7241878/for-in-loops-in-javascript-key-value-pairs answered Aug 30 '11 at 10:37 J0HN
+function get_new_world_callback(new_world){
+    for (let index in new_world){
+        world[index] = new_world[index];
+    }
+    drawNextFrame();
+}
 
 function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
+        console.log("opening new socket");
         //XXX: TODO What are you going to do here?
+        // Not sure what should I do here ....
+        var urlfetch= '/world'; // keep requesting the new World and update it 
+        var objects = null;
+        var callback = get_new_world_callback;
+        sendJSONFetchHTTPRequest(urlfetch, objects, callback);
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,7 +304,10 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?
+            var new_world = JSON.parse(msg.data);
+            get_new_world_callback(new_world);
+
         } catch (e) {
             alert("socket on message: " + e);
         }
