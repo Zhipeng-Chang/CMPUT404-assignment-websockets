@@ -136,9 +136,9 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
-    var new_world = {};
-    new_world[entity] = data;
-    socket.send(JSON.stringify(new_world));
+    var new_entity = {};
+    new_entity[entity] = data;
+    socket.send(JSON.stringify(new_entity));
 }
 var counter = 0;
 function addEntityWithoutName(data) {
