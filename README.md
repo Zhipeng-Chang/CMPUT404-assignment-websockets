@@ -9,12 +9,13 @@ Make a shared state Websockets drawing program
 
 Prereqs
 =======
+Create a virtual environment and install the required dependencies.
 
-pip install flask-sockets
-
-pip install ws4py
-
-pip install gunicorn
+```bash
+virtualenv venv --python=python3
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
 Contributors / Licensing
 ========================
@@ -58,3 +59,4 @@ Contributors
 * Mark Galloway
 * Abram Hindle
 * Zhipeng Chang
+* Cole Mackenzie
