@@ -57,3 +57,4 @@ Contributors
 
 * Mark Galloway
 * Abram Hindle
+* Zhipeng Chang
