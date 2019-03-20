@@ -141,6 +141,7 @@ def flask_post_json():
     else:
         return json.loads(request.form.keys()[0])
 
+# Most codes below are from my assignment 4 https://github.com/Zhipeng-Chang/CMPUT404-assignment-ajax
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
